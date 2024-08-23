@@ -1,13 +1,13 @@
 package com.small.eCommerce.helper;
 
+import com.small.eCommerce.dao.HistoryDao;
+import com.small.eCommerce.dao.ProductDao;
+import com.small.eCommerce.dao.TransactionDao;
 import com.small.eCommerce.exception.FoundException;
 import com.small.eCommerce.model.History;
 import com.small.eCommerce.model.Orders;
 import com.small.eCommerce.model.Products;
 import com.small.eCommerce.model.Transaction;
-import com.small.eCommerce.repository.HistoryRepo;
-import com.small.eCommerce.repository.ProductsRepo;
-import com.small.eCommerce.repository.TransactionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,11 +20,11 @@ import java.util.concurrent.atomic.AtomicReference;
 public class HelperServices {
 
     @Autowired
-    ProductsRepo productsRepo;
+    HistoryDao HistoryDao;
     @Autowired
-    HistoryRepo HistoryRepo;
+    TransactionDao TransactionDao;
     @Autowired
-    TransactionRepo TransactionRepo;
+    ProductDao productsDao;
 
     private static Integer currentTransactionId = null;
 
@@ -37,7 +37,7 @@ public class HelperServices {
             throw new FoundException("Order list cannot be null or empty.");
         }
         // Creating new transaction and getting transactionId for the whole order
-        Integer transactionId = generateTransactionId(TransactionRepo);
+        Integer transactionId = generateTransactionId(TransactionDao);
 
         // Memory to store total count and cost of items from Transaction
         AtomicReference<Integer> itemCount = new AtomicReference<>(0);
@@ -45,7 +45,7 @@ public class HelperServices {
         // Looping through each order and storing each with one TransactionId
         for (Orders order : saleOrders) {
             itemCount.getAndSet(itemCount.get() + 1);
-            Optional<Products> optionalProduct = productsRepo.findById(order.getId());
+            Optional<Products> optionalProduct = productsDao.FindProductById(order.getId());
 
             if (optionalProduct.isEmpty()) {
                 throw new FoundException("Product not found for ID: " + order.getId());
@@ -58,24 +58,24 @@ public class HelperServices {
             } else {
                 product.setProductsQTY(product.getProductsQTY() + order.getQty());
             }
-            productsRepo.save(product);
+            productsDao.SaveProduct(product);
 
             Double itemPrice = product.getProductsCost();
             totalCost.updateAndGet(v -> v + itemPrice * order.getQty());
 
-            HistoryRepo.save(new History(transactionId, order.getId(), order.getQty(), itemPrice));
+            HistoryDao.saveHistory(new History(transactionId, order.getId(), order.getQty(), itemPrice));
         }
 
         // Updating Items count and Cost in transaction
         Transaction transactionObject = new Transaction(transactionId,transactionType, totalCost.get(), itemCount.get(), new Date());
-        TransactionRepo.save(transactionObject);
+        TransactionDao.saveTransaction(transactionObject);
     }
 
     // Synchronized method to handle transaction ID generation and storage
-    public static synchronized Integer generateTransactionId(TransactionRepo TransactionRepo) {
+    public static synchronized Integer generateTransactionId(TransactionDao TransactionDao) {
         if (currentTransactionId == null) {
             // Fetch the latest transaction ID from the database
-            currentTransactionId = TransactionRepo.getLatestTransactionId();
+            currentTransactionId = TransactionDao.getNextTransactionId();
             if (currentTransactionId == null) {
                 currentTransactionId = 0; // Start from 1 if no transactions exist
             }

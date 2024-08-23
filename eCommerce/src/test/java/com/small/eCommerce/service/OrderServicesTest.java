@@ -4,7 +4,7 @@ import com.small.eCommerce.exception.FoundException;
 import com.small.eCommerce.helper.HelperServices;
 import com.small.eCommerce.model.Orders;
 import com.small.eCommerce.model.Products;
-import com.small.eCommerce.repository.ProductsRepo;
+import com.small.eCommerce.dao.ProductDao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.*;
 class OrderServicesTest {
 
     @Mock
-    private ProductsRepo productsRepo;
+    private ProductDao ProductDao;
 
     @Mock
     private HelperServices helperServices;
@@ -41,11 +41,11 @@ class OrderServicesTest {
     @Test
     void testSalesOrder_ProductNotFound() {
         Orders order = new Orders(1, 5);
-        when(productsRepo.findById(order.getId())).thenReturn(Optional.empty());
+        when(ProductDao.FindProductById(order.getId())).thenReturn(Optional.empty());
 
         assertThrows(FoundException.class, () -> orderServices.SalesOrder(List.of(order)));
 
-        verify(productsRepo, times(1)).findById(order.getId());
+        verify(ProductDao, times(1)).FindProductById(order.getId());
         verify(helperServices, never()).StoreOrder(anyList(), anyBoolean());
     }
 
@@ -53,11 +53,11 @@ class OrderServicesTest {
     void testSalesOrder_ProductOutOfStock() {
         Orders order = new Orders(1, 5);
         Products product = new Products(1, "Product1", 2, 50.0);
-        when(productsRepo.findById(order.getId())).thenReturn(Optional.of(product));
+        when(ProductDao.FindProductById(order.getId())).thenReturn(Optional.of(product));
 
         assertThrows(FoundException.class, () -> orderServices.SalesOrder(List.of(order)));
 
-        verify(productsRepo, times(1)).findById(order.getId());
+        verify(ProductDao, times(1)).FindProductById(order.getId());
         verify(helperServices, never()).StoreOrder(anyList(), anyBoolean());
     }
 
@@ -67,9 +67,9 @@ class OrderServicesTest {
         order.add(new Orders(1, 10));
 
         Products product = new Products(1, "Product1", 10, 50.0);
-        when(productsRepo.findById(1)).thenReturn(Optional.of(product));
+        when(ProductDao.FindProductById(1)).thenReturn(Optional.of(product));
         orderServices.SalesOrder(order);
-        verify(productsRepo, times(1)).findById(1);
+        verify(ProductDao, times(1)).FindProductById(1);
         verify(helperServices, times(1)).StoreOrder(anyList(), eq(Boolean.TRUE));
     }
 
@@ -83,10 +83,10 @@ class OrderServicesTest {
     void testSalesOrder_EmptyInput() {
         List<Orders> emptyOrders = new ArrayList<>();
 
-        // When provided with an empty order list, it should not interact with productsRepo or helperServices
+        // When provided with an empty order list, it should not interact with ProductDao or helperServices
         assertThrows(FoundException.class, () -> orderServices.SalesOrder(emptyOrders));
 
-        verify(productsRepo, never()).findById(anyInt());
+        verify(ProductDao, never()).FindProductById(anyInt());
         verify(helperServices, never()).StoreOrder(anyList(), anyBoolean());
     }
 
@@ -95,7 +95,7 @@ class OrderServicesTest {
         Orders order1 = new Orders(1, 2);
         Orders order2 = new Orders(1, 3); // Duplicate product ID
 
-        when(productsRepo.findById(order1.getId())).thenReturn(Optional.of(new Products(1, "Product1", 10, 50.0)));
+        when(ProductDao.FindProductById(order1.getId())).thenReturn(Optional.of(new Products(1, "Product1", 10, 50.0)));
 
         assertThrows(FoundException.class, () -> orderServices.SalesOrder(List.of(order1, order2)));
     }
@@ -104,7 +104,7 @@ class OrderServicesTest {
     void testSalesOrder_ZeroQuantity() {
         Orders orderZeroQuantity = new Orders(1, 0);
 
-        when(productsRepo.findById(orderZeroQuantity.getId())).thenReturn(Optional.of(new Products(1, "Product1", 10, 50.0)));
+        when(ProductDao.FindProductById(orderZeroQuantity.getId())).thenReturn(Optional.of(new Products(1, "Product1", 10, 50.0)));
 
         assertThrows(FoundException.class, () -> orderServices.SalesOrder(List.of(orderZeroQuantity)));
     }
@@ -113,7 +113,7 @@ class OrderServicesTest {
     void testSalesOrder_NegativeQuantity() {
         Orders orderNegativeQuantity = new Orders(1, -1);
 
-        when(productsRepo.findById(orderNegativeQuantity.getId())).thenReturn(Optional.of(new Products(1, "Product1", 10, 50.0)));
+        when(ProductDao.FindProductById(orderNegativeQuantity.getId())).thenReturn(Optional.of(new Products(1, "Product1", 10, 50.0)));
 
         assertThrows(FoundException.class, () -> orderServices.SalesOrder(List.of(orderNegativeQuantity)));
     }

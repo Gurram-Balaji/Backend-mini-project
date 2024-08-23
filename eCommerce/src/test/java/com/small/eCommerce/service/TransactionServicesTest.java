@@ -5,8 +5,8 @@ import com.small.eCommerce.model.History;
 import com.small.eCommerce.model.Transaction;
 import com.small.eCommerce.model.TransactionCountWrapper;
 import com.small.eCommerce.model.TransactionWrapper;
-import com.small.eCommerce.repository.HistoryRepo;
-import com.small.eCommerce.repository.TransactionRepo;
+import com.small.eCommerce.dao.HistoryDao;
+import com.small.eCommerce.dao.TransactionDao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -24,23 +24,23 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 class TransactionServicesTest {
 
-    private TransactionRepo transactionRepo;
-    private HistoryRepo historyRepo;
+    private TransactionDao transactionDao;
+    private HistoryDao HistoryDao;
     private TransactionServices transactionServices;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        transactionRepo = mock(TransactionRepo.class);
-        historyRepo = mock(HistoryRepo.class);
+        transactionDao = mock(TransactionDao.class);
+        HistoryDao = mock(HistoryDao.class);
         transactionServices = new TransactionServices();
-        transactionServices.TransactionRepo = transactionRepo;
-        transactionServices.HistoryRepo = historyRepo;
+        transactionServices.TransactionDao = transactionDao;
+        transactionServices.HistoryDao = HistoryDao;
     }
 
     @Test
     void testFindTransactionById_TransactionNotFound() {
-        when(transactionRepo.findById(anyInt())).thenReturn(Optional.empty());
+        when(transactionDao.findTransactionById(anyInt())).thenReturn(Optional.empty());
 
         FoundException thrown = assertThrows(FoundException.class, () -> transactionServices.FindTransactionById(1));
 
@@ -54,8 +54,8 @@ class TransactionServicesTest {
         List<History> historyList = new ArrayList<>();
         historyList.add(new History());
 
-        when(transactionRepo.findById(anyInt())).thenReturn(Optional.of(transaction));
-        when(historyRepo.findAllByTransactionId(anyInt())).thenReturn(historyList);
+        when(transactionDao.findTransactionById(anyInt())).thenReturn(Optional.of(transaction));
+        when(HistoryDao.findAllTransactionByTransactionId(anyInt())).thenReturn(historyList);
 
         TransactionWrapper result = transactionServices.FindTransactionById(1);
 
@@ -65,7 +65,7 @@ class TransactionServicesTest {
 
     @Test
     void testGetAllTransaction_EmptyList() {
-        when(transactionRepo.findAll()).thenReturn(new ArrayList<>());
+        when(transactionDao.findAllTransactions()).thenReturn(new ArrayList<>());
 
         List<TransactionWrapper> result = transactionServices.GetAllTransaction();
 
@@ -81,9 +81,9 @@ class TransactionServicesTest {
         historyList.add(new History());
         TransactionWrapper transactionWrapper = new TransactionWrapper(transaction, historyList);
 
-        when(transactionRepo.findAll()).thenReturn(List.of(transaction));
-        when(transactionRepo.findById(anyInt())).thenReturn(Optional.of(transaction));
-        when(historyRepo.findAllByTransactionId(anyInt())).thenReturn(historyList);
+        when(transactionDao.findAllTransactions()).thenReturn(List.of(transaction));
+        when(transactionDao.findTransactionById(anyInt())).thenReturn(Optional.of(transaction));
+        when(HistoryDao.findAllTransactionByTransactionId(anyInt())).thenReturn(historyList);
 
         List<TransactionWrapper> result = transactionServices.GetAllTransaction();
 
@@ -94,9 +94,9 @@ class TransactionServicesTest {
 
     @Test
     void testTransactionCount_Success() {
-        when(transactionRepo.getCountByType(true)).thenReturn(10);
-        when(transactionRepo.getCountByType(false)).thenReturn(5);
-        when(transactionRepo.count()).thenReturn(15L);
+        when(transactionDao.getAllOrdersCount()).thenReturn(10);
+        when(transactionDao.getAllPurchasesCount()).thenReturn(5);
+        when(transactionDao.getAllTransactionCount()).thenReturn(15L);
 
         TransactionCountWrapper result = transactionServices.TransactionCount();
 
@@ -109,8 +109,8 @@ class TransactionServicesTest {
     @Test
     void testDeleteTransaction_Success() {
         transactionServices.DeleteTransaction();
-        verify(transactionRepo, times(1)).deleteAll();
-        verify(historyRepo, times(1)).deleteAll();
+        verify(transactionDao, times(1)).deleteAllTransaction();
+        verify(HistoryDao, times(1)).deleteAllTransaction();
     }
 
 }

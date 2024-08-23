@@ -26,6 +26,4 @@ public class History {
         this.historyProductQty=qty;
         this.historyProductCost=productsCost;
     }
-
-
 }

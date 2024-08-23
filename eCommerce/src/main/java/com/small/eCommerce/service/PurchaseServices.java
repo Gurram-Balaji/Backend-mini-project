@@ -3,7 +3,7 @@ import com.small.eCommerce.exception.FoundException;
 import com.small.eCommerce.helper.HelperServices;
 import com.small.eCommerce.model.Orders;
 import com.small.eCommerce.model.Products;
-import com.small.eCommerce.repository.ProductsRepo;
+import com.small.eCommerce.dao.ProductDao;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -14,7 +14,7 @@ import java.util.Optional;
 public class PurchaseServices {
 
     @Autowired
-    ProductsRepo productsRepo;
+    ProductDao productsDao;
 
     @Autowired
     HelperServices helperServices;
@@ -29,7 +29,7 @@ public class PurchaseServices {
         // Iterate through each order
         addPurchasesList.forEach(order -> {
             // Check if the product exists in the repository
-            Optional<Products> productOptional = productsRepo.findById(order.getId());
+            Optional<Products> productOptional = productsDao.FindProductById(order.getId());
 
             // If the product is not found, throw an exception
             if (productOptional.isEmpty()) {

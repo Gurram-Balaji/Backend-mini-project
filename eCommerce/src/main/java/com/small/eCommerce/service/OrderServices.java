@@ -1,5 +1,6 @@
 package com.small.eCommerce.service;
 
+import com.small.eCommerce.dao.ProductDao;
 import com.small.eCommerce.exception.FoundException;
 import com.small.eCommerce.helper.HelperServices;
 import com.small.eCommerce.model.Products;
@@ -17,7 +18,7 @@ import java.util.Set;
 public class OrderServices {
 
     @Autowired
-    ProductsRepo productsRepo;
+    ProductDao productsDao;
 
     @Autowired
     HelperServices helperServices;
@@ -32,7 +33,7 @@ public class OrderServices {
             if (!productIds.add(orders.getId()))
                 throw new FoundException("Duplicate product ID found: " + orders.getId());
 
-            Optional<Products> product = productsRepo.findById(orders.getId());
+            Optional<Products> product = productsDao.FindProductById(orders.getId());
             if (product.isEmpty()) throw new FoundException("Product id: " + orders.getId() + " not found.");
 
             if (orders.getQty() <= 0)

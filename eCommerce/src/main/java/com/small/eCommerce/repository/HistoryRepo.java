@@ -9,4 +9,7 @@ import java.util.List;
 public interface HistoryRepo extends JpaRepository<History,Integer> {
     @Query(value = "SELECT * FROM history h Where h.history_transaction_id=:id", nativeQuery = true)
     List<History> findAllByTransactionId(Integer id);
+
+
+
 }

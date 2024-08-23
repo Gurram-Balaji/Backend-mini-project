@@ -3,7 +3,7 @@ package com.small.eCommerce.service;
 import com.small.eCommerce.exception.FoundException;
 import com.small.eCommerce.model.Products;
 import com.small.eCommerce.model.WrapperToInventory;
-import com.small.eCommerce.repository.ProductsRepo;
+import com.small.eCommerce.dao.ProductDao;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.*;
 public class ProductsServicesTest {
 
     @Mock
-    private ProductsRepo productsRepo;
+    private ProductDao ProductDao;
 
     @InjectMocks
     private ProductsServices productsServices;
@@ -37,14 +37,14 @@ public class ProductsServicesTest {
         products.add(new Products("Product 1", 10, 10.99));
         products.add(new Products("Product 2", 20, 20.99));
 
-        when(productsRepo.saveAll(products)).thenReturn(products);
+        when(ProductDao.SaveAllProducts(products)).thenReturn(products);
 
         // Act
         List<Products> result = productsServices.AddNewProducts(products);
 
         // Assert
         assertEquals(products, result);
-        verify(productsRepo, times(1)).saveAll(products);
+        verify(ProductDao, times(1)).SaveAllProducts(products);
     }
 
     @Test
@@ -54,7 +54,7 @@ public class ProductsServicesTest {
         products.add(new Products("Product 1", 10, 10.99));
         products.add(new Products("Product 2", 20, 20.99));
 
-        when(productsRepo.findAll()).thenReturn(products);
+        when(ProductDao.FindAllProducts()).thenReturn(products);
 
         // Act
         List<WrapperToInventory> result = productsServices.fetchInventory();
@@ -65,17 +65,17 @@ public class ProductsServicesTest {
         assertThat(result.get(0).getProductsQTY(), is(10));
         assertThat(result.get(1).getProductsName(), is("Product 2"));
         assertThat(result.get(1).getProductsQTY(), is(20));
-        verify(productsRepo, times(1)).findAll();
+        verify(ProductDao, times(1)).FindAllProducts();
     }
 
     @Test
     public void testFetchInventory_empty() {
         // Arrange
-        when(productsRepo.findAll()).thenReturn(new ArrayList<>());
+        when(ProductDao.FindAllProducts()).thenReturn(new ArrayList<>());
 
         // Act and Assert
         assertThrows(FoundException.class, () -> productsServices.fetchInventory());
-        verify(productsRepo, times(1)).findAll();
+        verify(ProductDao, times(1)).FindAllProducts();
     }
 
     @Test
@@ -84,14 +84,14 @@ public class ProductsServicesTest {
         Integer id = 1;
         Products product = new Products("Product 1", 10, 10.99);
 
-        when(productsRepo.findById(id)).thenReturn(Optional.of(product));
+        when(ProductDao.FindProductById(id)).thenReturn(Optional.of(product));
 
         // Act
         Optional<Products> result = productsServices.findProductById(id);
 
         // Assert
         assertEquals(Optional.of(product), result);
-        verify(productsRepo, times(1)).findById(id);
+        verify(ProductDao, times(1)).FindProductById(id);
     }
 
     @Test
@@ -99,11 +99,11 @@ public class ProductsServicesTest {
         // Arrange
         Integer id = 1;
 
-        when(productsRepo.findById(id)).thenReturn(Optional.empty());
+        when(ProductDao.FindProductById(id)).thenReturn(Optional.empty());
 
         // Act and Assert
         assertThrows(FoundException.class, () -> productsServices.findProductById(id));
-        verify(productsRepo, times(1)).findById(id);
+        verify(ProductDao, times(1)).FindProductById(id);
     }
 
     @Test
@@ -113,24 +113,24 @@ public class ProductsServicesTest {
         products.add(new Products("Product 1", 10, 10.99));
         products.add(new Products("Product 2", 20, 20.99));
 
-        when(productsRepo.findAll()).thenReturn(products);
+        when(ProductDao.FindAllProducts()).thenReturn(products);
 
         // Act
         List<Products> result = productsServices.findAllProduct();
 
         // Assert
         assertEquals(products, result);
-        verify(productsRepo, times(1)).findAll();
+        verify(ProductDao, times(1)).FindAllProducts();
     }
 
     @Test
     public void testFindAllProduct_empty() {
         // Arrange
-        when(productsRepo.findAll()).thenReturn(new ArrayList<>());
+        when(ProductDao.FindAllProducts()).thenReturn(new ArrayList<>());
 
         // Act and Assert
         assertThrows(FoundException.class, () -> productsServices.findAllProduct());
-        verify(productsRepo, times(1)).findAll();
+        verify(ProductDao, times(1)).FindAllProducts();
     }
 
     @Test
@@ -140,16 +140,16 @@ public class ProductsServicesTest {
         Products product = new Products("Product 1", 10, 10.99);
         Products updatedProduct = new Products("Product 1", 10, 15.99);
 
-        when(productsRepo.findById(id)).thenReturn(Optional.of(product));
-        when(productsRepo.save(any(Products.class))).thenReturn(updatedProduct);
+        when(ProductDao.FindProductById(id)).thenReturn(Optional.of(product));
+        when(ProductDao.SaveProduct(any(Products.class))).thenReturn(updatedProduct);
 
         // Act
         Optional<Products> result = productsServices.updateProductPrice(id, updatedProduct);
 
         // Assert
         assertEquals(Optional.of(updatedProduct), result);
-        verify(productsRepo, times(1)).findById(id);
-        verify(productsRepo, times(1)).save(any(Products.class));
+        verify(ProductDao, times(1)).FindProductById(id);
+        verify(ProductDao, times(1)).SaveProduct(any(Products.class));
     }
 
     @Test
@@ -160,8 +160,8 @@ public class ProductsServicesTest {
 
         // Act and Assert
         assertThrows(FoundException.class, () -> productsServices.updateProductPrice(id, product));
-        verify(productsRepo, never()).findById(id);
-        verify(productsRepo, never()).save(any(Products.class));
+        verify(ProductDao, never()).FindProductById(id);
+        verify(ProductDao, never()).SaveProduct(any(Products.class));
     }
 
     @Test
@@ -172,8 +172,8 @@ public class ProductsServicesTest {
 
         // Act and Assert
         assertThrows(FoundException.class, () -> productsServices.updateProductPrice(id, product));
-        verify(productsRepo, never()).findById(id);
-        verify(productsRepo, never()).save(any(Products.class));
+        verify(ProductDao, never()).FindProductById(id);
+        verify(ProductDao, never()).SaveProduct(any(Products.class));
     }
 
     @Test
@@ -182,12 +182,12 @@ public class ProductsServicesTest {
         Integer id = 1;
         Products product = new Products("Product 1", 10, 15.99);
 
-        when(productsRepo.findById(id)).thenReturn(Optional.empty());
+        when(ProductDao.FindProductById(id)).thenReturn(Optional.empty());
 
         // Act and Assert
         assertThrows(FoundException.class, () -> productsServices.updateProductPrice(id, product));
-        verify(productsRepo, times(1)).findById(id);
-        verify(productsRepo, never()).save(any(Products.class));
+        verify(ProductDao, times(1)).FindProductById(id);
+        verify(ProductDao, never()).SaveProduct(any(Products.class));
     }
 
     @Test
@@ -196,14 +196,14 @@ public class ProductsServicesTest {
         Integer id = 1;
         Products product = new Products("Product 1", 10, 10.99);
 
-        when(productsRepo.findById(id)).thenReturn(Optional.of(product));
+        when(ProductDao.FindProductById(id)).thenReturn(Optional.of(product));
 
         // Act
         productsServices.DeleteProductById(id);
 
         // Assert
-        verify(productsRepo, times(1)).findById(id);
-        verify(productsRepo, times(1)).deleteById(id);
+        verify(ProductDao, times(1)).FindProductById(id);
+        verify(ProductDao, times(1)).DeleteProductById(id);
     }
 
     @Test
@@ -211,12 +211,12 @@ public class ProductsServicesTest {
         // Arrange
         Integer id = 1;
 
-        when(productsRepo.findById(id)).thenReturn(Optional.empty());
+        when(ProductDao.FindProductById(id)).thenReturn(Optional.empty());
 
         // Act and Assert
         assertThrows(FoundException.class, () -> productsServices.DeleteProductById(id));
-        verify(productsRepo, times(1)).findById(id);
-        verify(productsRepo, never()).deleteById(id);
+        verify(ProductDao, times(1)).FindProductById(id);
+        verify(ProductDao, never()).DeleteProductById(id);
     }
 
     @Test
@@ -225,6 +225,6 @@ public class ProductsServicesTest {
         productsServices.DeleteAllProducts();
 
         // Assert
-        verify(productsRepo, times(1)).deleteAll();
+        verify(ProductDao, times(1)).DeleteAllProduct();
     }
 }

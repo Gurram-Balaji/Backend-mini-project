@@ -1,13 +1,13 @@
 package com.small.eCommerce.helper;
 
+import com.small.eCommerce.dao.HistoryDao;
+import com.small.eCommerce.dao.ProductDao;
+import com.small.eCommerce.dao.TransactionDao;
 import com.small.eCommerce.exception.FoundException;
 import com.small.eCommerce.model.History;
 import com.small.eCommerce.model.Orders;
 import com.small.eCommerce.model.Products;
 import com.small.eCommerce.model.Transaction;
-import com.small.eCommerce.repository.HistoryRepo;
-import com.small.eCommerce.repository.ProductsRepo;
-import com.small.eCommerce.repository.TransactionRepo;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,13 +27,13 @@ import static org.mockito.Mockito.*;
 public class HelperServicesTest {
 
     @Mock
-    private ProductsRepo productsRepo;
+    private ProductDao productDao;
 
     @Mock
-    private HistoryRepo historyRepo;
+    private HistoryDao historyDao;
 
     @Mock
-    private TransactionRepo transactionRepo;
+    private TransactionDao transactionDao;
 
     @InjectMocks
     private HelperServices helperServices;
@@ -41,7 +41,6 @@ public class HelperServicesTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        // Reset the static variable before each test
         HelperServices.setCurrentTransactionId(null);
     }
 
@@ -53,19 +52,19 @@ public class HelperServicesTest {
 
     @Test
     public void testGenerateTransactionId_InitialTransaction_ShouldStartFromOne() {
-        when(transactionRepo.getLatestTransactionId()).thenReturn(null);
+        when(transactionDao.getNextTransactionId()).thenReturn(null);
 
-        Integer transactionId = HelperServices.generateTransactionId(transactionRepo);
+        Integer transactionId = HelperServices.generateTransactionId(transactionDao);
 
         assertEquals(1, transactionId);
     }
 
     @Test
     public void testGenerateTransactionId_SubsequentTransactions_ShouldIncrement() {
-        when(transactionRepo.getLatestTransactionId()).thenReturn(100);
+        when(transactionDao.getNextTransactionId()).thenReturn(100);
 
-        Integer transactionId1 = HelperServices.generateTransactionId(transactionRepo);
-        Integer transactionId2 = HelperServices.generateTransactionId(transactionRepo);
+        Integer transactionId1 = HelperServices.generateTransactionId(transactionDao);
+        Integer transactionId2 = HelperServices.generateTransactionId(transactionDao);
 
         assertEquals(101, transactionId1);
         assertEquals(102, transactionId2);
@@ -83,7 +82,7 @@ public class HelperServicesTest {
     @Test
     public void testStoreOrder_ProductNotFound_ShouldThrowException() {
         Orders order = new Orders(1, 10);
-        when(productsRepo.findById(1)).thenReturn(Optional.empty());
+        when(productDao.FindProductById(1)).thenReturn(Optional.empty());
 
         FoundException exception = assertThrows(FoundException.class, () -> helperServices.StoreOrder(List.of(order), true));
         assertEquals("Product not found for ID: 1", exception.getMessage());
@@ -96,35 +95,35 @@ public class HelperServicesTest {
         Products product1 = new Products(1, "Product1", 10, 100.0);
         Products product2 = new Products(2, "Product2", 15, 200.0);
 
-        when(productsRepo.findById(1)).thenReturn(Optional.of(product1));
-        when(productsRepo.findById(2)).thenReturn(Optional.of(product2));
-        when(transactionRepo.getLatestTransactionId()).thenReturn(100);
+        when(productDao.FindProductById(1)).thenReturn(Optional.of(product1));
+        when(productDao.FindProductById(2)).thenReturn(Optional.of(product2));
+        when(transactionDao.getNextTransactionId()).thenReturn(100);
 
         helperServices.StoreOrder(Arrays.asList(order1, order2), true);
 
-        verify(productsRepo, times(2)).save(any(Products.class));
-        verify(historyRepo, times(2)).save(any(History.class));
-        verify(transactionRepo, times(1)).save(any(Transaction.class));
+        verify(productDao, times(2)).SaveProduct(any(Products.class));
+        verify(historyDao, times(2)).saveHistory(any(History.class));
+        verify(transactionDao, times(1)).saveTransaction(any(Transaction.class));
     }
 
     @Test
     public void testStoreOrder_ValidOrders_ShouldUpdateProductAndHistory() {
         Orders order = new Orders(1, 5);
         Products product = new Products(1, "Test Product", 10, 100.0);
-        when(productsRepo.findById(order.getId())).thenReturn(Optional.of(product));
-        when(transactionRepo.getLatestTransactionId()).thenReturn(null);
+        when(productDao.FindProductById(order.getId())).thenReturn(Optional.of(product));
+        when(transactionDao.getNextTransactionId()).thenReturn(null);
 
         helperServices.StoreOrder(Collections.singletonList(order), true);
 
         // Verify product quantity update and save
-        verify(productsRepo, times(1)).save(any(Products.class));
+        verify(productDao, times(1)).SaveProduct(any(Products.class));
         assertEquals(5, product.getProductsQTY());
 
         // Verify history creation and save
-        verify(historyRepo, times(1)).save(any(History.class));
+        verify(historyDao, times(1)).saveHistory(any(History.class));
 
         // Verify transaction creation and save
-        verify(transactionRepo, times(1)).save(any(Transaction.class));
+        verify(transactionDao, times(1)).saveTransaction(any(Transaction.class));
     }
 
 }

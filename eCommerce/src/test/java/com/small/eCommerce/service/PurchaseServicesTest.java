@@ -6,7 +6,7 @@ import com.small.eCommerce.exception.FoundException;
 import com.small.eCommerce.helper.HelperServices;
 import com.small.eCommerce.model.Orders;
 import com.small.eCommerce.model.Products;
-import com.small.eCommerce.repository.ProductsRepo;
+import com.small.eCommerce.dao.ProductDao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -23,7 +23,7 @@ import java.util.Optional;
 class PurchaseServicesTest {
 
     @Mock
-    private ProductsRepo productsRepo;
+    private ProductDao ProductDao;
 
     @Mock
     private HelperServices helperServices;
@@ -44,11 +44,11 @@ class PurchaseServicesTest {
 
     @Test
     void testAddPurchase_EmptyInput() {
-        // Verifies that with an empty order list, productsRepo and helperServices are not called
+        // Verifies that with an empty order list, ProductDao and helperServices are not called
         List<Orders> emptyOrders = new ArrayList<>();
         assertThrows(FoundException.class, () -> purchaseServices.AddPurchase(emptyOrders));
 
-        verify(productsRepo, never()).findById(anyInt());
+        verify(ProductDao, never()).FindProductById(anyInt());
         verify(helperServices, never()).StoreOrder(anyList(), anyBoolean());
     }
 
@@ -57,7 +57,7 @@ class PurchaseServicesTest {
         // Checks that a FoundException is thrown if the product is not found in the repository
         Orders order = new Orders(1, 5);
 
-        when(productsRepo.findById(order.getId())).thenReturn(Optional.empty());
+        when(ProductDao.FindProductById(order.getId())).thenReturn(Optional.empty());
 
         assertThrows(FoundException.class, () -> purchaseServices.AddPurchase(List.of(order)));
     }
@@ -67,11 +67,11 @@ class PurchaseServicesTest {
         // Ensures that a FoundException is thrown for orders with zero or negative quantities
 
         Orders orderZeroQuantity = new Orders(1, 0);
-        when(productsRepo.findById(orderZeroQuantity.getId())).thenReturn(Optional.of(new Products(1, "Product1", 10, 50.0)));
+        when(ProductDao.FindProductById(orderZeroQuantity.getId())).thenReturn(Optional.of(new Products(1, "Product1", 10, 50.0)));
         assertThrows(FoundException.class, () -> purchaseServices.AddPurchase(List.of(orderZeroQuantity)));
 
         Orders orderNegativeQuantity = new Orders(1, -1);
-        when(productsRepo.findById(orderNegativeQuantity.getId())).thenReturn(Optional.of(new Products(1, "Product1", 10, 50.0)));
+        when(ProductDao.FindProductById(orderNegativeQuantity.getId())).thenReturn(Optional.of(new Products(1, "Product1", 10, 50.0)));
         assertThrows(FoundException.class, () -> purchaseServices.AddPurchase(List.of(orderNegativeQuantity)));
     }
 
@@ -81,7 +81,7 @@ class PurchaseServicesTest {
         Orders order = new Orders(1, 10);
         Products product = new Products(1, "Product1", 10, 50.0);
 
-        when(productsRepo.findById(order.getId())).thenReturn(Optional.of(product));
+        when(ProductDao.FindProductById(order.getId())).thenReturn(Optional.of(product));
 
         List<Orders> ordersList = List.of(order);
         List<Orders> result = purchaseServices.AddPurchase(ordersList);
