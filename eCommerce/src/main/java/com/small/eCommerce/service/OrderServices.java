@@ -4,7 +4,6 @@ import com.small.eCommerce.dao.ProductDao;
 import com.small.eCommerce.exception.FoundException;
 import com.small.eCommerce.helper.HelperServices;
 import com.small.eCommerce.model.Products;
-import com.small.eCommerce.repository.ProductsRepo;
 import com.small.eCommerce.model.Orders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
