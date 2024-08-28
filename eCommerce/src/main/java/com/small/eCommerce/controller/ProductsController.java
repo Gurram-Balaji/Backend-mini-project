@@ -76,7 +76,6 @@ public class ProductsController {
                 .map(eachPayload -> new ApiResponse<>(true, "Product id: "+id+" Found and Updated cost.", eachPayload))
                 .orElseGet(() -> new ApiResponse<>(false, "Product id: "+id+" Not found, so could not update cost.!", new Products()));
         return ResponseEntity.status(HttpStatus.OK).body(response);
-
     }
 
     //Deleting product's by Query ID or Deleting all products without passing id
